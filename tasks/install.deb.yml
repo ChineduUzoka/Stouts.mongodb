@@ -2,19 +2,17 @@
 
 - include_vars: "{{ansible_distribution}}.yml"
 
-- name: Obtain repository config
-  set_fact:
-    mongodb_repository_data: "{{mongodb_repository_config[mongodb_major_minor_version]}}"
-
 - name: Add APT key
-  apt_key: keyserver=keyserver.ubuntu.com id=EA312927
+  apt_key: keyserver={{ mongodb_apt_keyserver }} id={{ mongodb_key }}
+  when: '"mongodb-org" in mongodb_package'
 
 - name: Add APT repository
-  apt_repository: repo="{{mongodb_repository_data.repository}}" update_cache=yes
+  apt_repository: repo={{mongodb_repository}} update_cache=yes
+  when: '"mongodb-org" in mongodb_package'
 
 - name: Install MongoDB package
-  apt: name="{{mongodb_repository_data.package+'='+mongodb_version}}" state=present
+  apt: pkg={{mongodb_package}} state=present
 
 - name: Install additional packages
-  apt: name={{item}}
-  with_items: "{{mongodb_additional_packages}}"
+  apt: pkg={{item}}
+  with_items: mongodb_additional_packages
